@@ -9,24 +9,37 @@
 
 	let videoError = $state<string | null>(null);
 	let videoReady = $state(false);
+	let networkState = $state<string>('initial');
 
 	function onVideoError(e: Event) {
 		const video = e.target as HTMLVideoElement;
 		const code = video.error?.code;
 		const msg = video.error?.message;
-		videoError = `Error ${code}: ${msg}`;
+		const medErr = video.error?.MEDIA_ERR_NETWORK ?? video.error?.MEDIA_ERR_DECODE;
+		videoError = `Error ${code}: ${msg} (network: ${video.networkState}, ready: ${video.readyState})`;
+		networkState = `network=${video.networkState} ready=${video.readyState}`;
 	}
 
 	function onVideoCanPlay() {
 		videoReady = true;
 		videoError = null;
+		networkState = 'canplay';
 	}
 
-	// Reset error state when switching channels
+	function onVideoLoadStart() {
+		networkState = 'loadstart';
+	}
+
+	function onVideoWaiting() {
+		networkState = 'waiting';
+	}
+
+	// Reset when channel changes
 	$effect(() => {
 		$activeChannel;
 		videoError = null;
 		videoReady = false;
+		networkState = 'changed';
 	});
 </script>
 
@@ -41,21 +54,21 @@
 			controls
 			onerror={onVideoError}
 			oncanplay={onVideoCanPlay}
+			onloadstart={onVideoLoadStart}
+			onwaiting={onVideoWaiting}
 		></video>
 	{/if}
 
-	{#if videoError}
-		<div class="video-error">
-			<p>⚠️ Video error: {videoError}</p>
-			<p class="video-url-debug">URL: {videoUrl}</p>
-		</div>
-	{/if}
-
-	{#if !videoReady && !videoError}
-		<div class="video-loading">
-			<p>Loading video...</p>
-		</div>
-	{/if}
+	<!-- Debug info -->
+	<div class="debug-info">
+		<p>Channel: {currentChannel?.name ?? 'none'}</p>
+		<p>Identifier: {currentChannel?.identifier ?? 'none'}</p>
+		<p>Video URL: {videoUrl ?? 'none'}</p>
+		<p>State: {networkState}</p>
+		{#if videoError}
+			<p class="error">⚠️ {videoError}</p>
+		{/if}
+	</div>
 
 	{#if currentChannel}
 		<div class="channel-overlay">
@@ -83,34 +96,29 @@
 		object-fit: contain;
 	}
 
-	.video-error {
+	.debug-info {
 		position: absolute;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
-		color: #ff6b6b;
-		text-align: center;
-		font-size: 14px;
-		z-index: 10;
-	}
-
-	.video-url-debug {
+		top: 50px;
+		left: 340px;
+		right: 20px;
+		background: rgba(0,0,0,0.85);
+		padding: 16px;
 		font-family: monospace;
-		font-size: 11px;
-		color: rgba(255, 255, 255, 0.5);
-		word-break: break-all;
-		max-width: 500px;
-		margin-top: 8px;
+		font-size: 12px;
+		z-index: 20;
+		border: 1px solid rgba(255,255,255,0.1);
+		border-radius: 8px;
+		line-height: 1.5;
 	}
 
-	.video-loading {
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
-		color: rgba(255, 255, 255, 0.5);
-		font-size: 14px;
-		z-index: 10;
+	.debug-info p {
+		margin: 2px 0;
+		word-break: break-all;
+	}
+
+	.debug-info .error {
+		color: #ff6b6b;
+		font-weight: bold;
 	}
 
 	.channel-overlay {
