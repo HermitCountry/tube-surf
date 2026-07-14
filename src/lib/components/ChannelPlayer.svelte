@@ -33,7 +33,6 @@
 		networkState = 'waiting';
 	}
 
-	// Reset state when channel changes
 	$effect(() => {
 		$activeChannel;
 		videoError = null;
@@ -59,9 +58,18 @@
 	{:else if currentChannel && !currentChannel.identifier}
 		<div class="no-signal">
 			<p class="no-signal-text">📡 No Signal</p>
-			<p class="no-signal-sub">No broadcast found for this time</p>
+			<p class="no-signal-sub">No broadcast found</p>
 		</div>
 	{/if}
+
+	<div class="debug-info">
+		<p>Channel: {currentChannel?.name ?? 'none'}</p>
+		<p>Identifier: {currentChannel?.identifier ?? 'none'}</p>
+		<p>URL: {videoUrl ?? 'none'}</p>
+		<p>State: {networkState}</p>
+		{#if videoError}<p class="error">⚠️ {videoError}</p>{/if}
+		{#if videoReady}<p style="color:#4caf50">✅ Playing</p>{/if}
+	</div>
 
 	{#if currentChannel}
 		<div class="channel-overlay">
@@ -109,6 +117,24 @@
 		margin: 0;
 	}
 
+	.debug-info {
+		position: absolute;
+		top: 50px;
+		left: 340px;
+		right: 20px;
+		background: rgba(0,0,0,0.85);
+		padding: 12px;
+		font-family: monospace;
+		font-size: 12px;
+		z-index: 20;
+		border: 1px solid rgba(255,255,255,0.1);
+		border-radius: 6px;
+		line-height: 1.4;
+	}
+
+	.debug-info p { margin: 2px 0; word-break: break-all; }
+	.debug-info .error { color: #ff6b6b; font-weight: bold; }
+
 	.channel-overlay {
 		position: absolute;
 		bottom: 40px;
@@ -119,16 +145,6 @@
 		pointer-events: none;
 	}
 
-	.channel-name {
-		font-size: 18px;
-		font-weight: 600;
-		margin: 0 0 4px 0;
-	}
-
-	.channel-desc {
-		font-size: 13px;
-		color: rgba(255, 255, 255, 0.7);
-		margin: 0;
-		max-width: 600px;
-	}
+	.channel-name { font-size: 18px; font-weight: 600; margin: 0 0 4px 0; }
+	.channel-desc { font-size: 13px; color: rgba(255, 255, 255, 0.7); margin: 0; max-width: 600px; }
 </style>
