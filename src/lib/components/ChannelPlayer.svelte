@@ -1,15 +1,15 @@
 <script lang="ts">
-	// HARDCODED TEST — FRANCE24 July 13 7pm Paris news
-	const TEST_IDENTIFIER = 'FRANCE24_20260713_170000';
-	const TEST_DIRECT_URL = `https://archive.org/download/${TEST_IDENTIFIER}/${TEST_IDENTIFIER}.mp4?exact=1`;
-	const TEST_EMBED_URL = `https://archive.org/embed/${TEST_IDENTIFIER}`;
+	import { channels, activeChannel } from '$lib/stores/settings';
+	import { getVideoUrl } from '$lib/ia/api';
 
-	let useDirect = $state(true);
-	let useEmbed = $state(false);
+	let currentChannel = $derived($channels[$activeChannel]);
+	let videoUrl = $derived(currentChannel?.identifier
+		? getVideoUrl(currentChannel.identifier) + '?exact=1'
+		: null);
+
 	let videoError = $state<string | null>(null);
 	let videoReady = $state(false);
 	let networkState = $state('initial');
-	let currentUrl = $state(TEST_DIRECT_URL);
 
 	function onVideoError(e: Event) {
 		const video = e.target as HTMLVideoElement;
@@ -17,15 +17,6 @@
 		const msg = video.error?.message;
 		videoError = `Error ${code}: ${msg}`;
 		networkState = `error: net=${video.networkState} ready=${video.readyState}`;
-
-		// Fallback to embed if direct fails
-		if (useDirect) {
-			console.log('Direct video failed, trying embed...');
-			useDirect = false;
-			useEmbed = true;
-			currentUrl = TEST_EMBED_URL;
-			videoError = null;
-		}
 	}
 
 	function onVideoCanPlay() {
@@ -41,13 +32,21 @@
 	function onVideoWaiting() {
 		networkState = 'waiting';
 	}
+
+	// Reset state when channel changes
+	$effect(() => {
+		$activeChannel;
+		videoError = null;
+		videoReady = false;
+		networkState = 'changed';
+	});
 </script>
 
 <div class="player-area">
-	{#if useDirect}
+	{#if videoUrl && currentChannel?.identifier}
 		<video
 			class="main-video"
-			src={currentUrl}
+			src={videoUrl}
 			autoplay
 			muted
 			playsinline
@@ -57,27 +56,21 @@
 			onloadstart={onVideoLoadStart}
 			onwaiting={onVideoWaiting}
 		></video>
-	{:else if useEmbed}
-		<iframe
-			class="embed-player"
-			src={currentUrl}
-			allow="autoplay; fullscreen"
-			allowfullscreen
-		></iframe>
+	{:else if currentChannel && !currentChannel.identifier}
+		<div class="no-signal">
+			<p class="no-signal-text">📡 No Signal</p>
+			<p class="no-signal-sub">No broadcast found for this time</p>
+		</div>
 	{/if}
 
-	<div class="debug-info" style:bottom={useEmbed ? '0' : 'auto'} style:top={useEmbed ? 'auto' : '50px'}>
-		<p><strong>Test — 7pm Paris news (FRANCE24)</strong></p>
-		<p>Mode: {useDirect ? 'direct MP4' : 'IA embed'}</p>
-		<p>URL: {currentUrl}</p>
-		<p>State: {networkState}</p>
-		{#if videoReady}
-			<p style="color: #4caf50;">✅ Video is playing!</p>
-		{/if}
-		{#if videoError}
-			<p class="error">⚠️ {videoError}</p>
-		{/if}
-	</div>
+	{#if currentChannel}
+		<div class="channel-overlay">
+			<h2 class="channel-name">{currentChannel.name}</h2>
+			{#if currentChannel.description}
+				<p class="channel-desc">{currentChannel.description}</p>
+			{/if}
+		</div>
+	{/if}
 </div>
 
 <style>
@@ -96,33 +89,46 @@
 		object-fit: contain;
 	}
 
-	.embed-player {
-		width: 100%;
-		height: 100%;
-		border: none;
-	}
-
-	.debug-info {
+	.no-signal {
 		position: absolute;
-		left: 40px;
-		right: 40px;
-		background: rgba(0,0,0,0.85);
-		padding: 16px;
-		font-family: monospace;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		text-align: center;
+	}
+
+	.no-signal-text {
+		font-size: 24px;
+		color: rgba(255, 255, 255, 0.6);
+		margin: 0 0 8px 0;
+	}
+
+	.no-signal-sub {
+		font-size: 14px;
+		color: rgba(255, 255, 255, 0.3);
+		margin: 0;
+	}
+
+	.channel-overlay {
+		position: absolute;
+		bottom: 40px;
+		left: 340px;
+		right: 20px;
+		background: linear-gradient(transparent, rgba(0,0,0,0.7));
+		padding: 20px;
+		pointer-events: none;
+	}
+
+	.channel-name {
+		font-size: 18px;
+		font-weight: 600;
+		margin: 0 0 4px 0;
+	}
+
+	.channel-desc {
 		font-size: 13px;
-		z-index: 20;
-		border: 1px solid rgba(255,255,255,0.1);
-		border-radius: 8px;
-		line-height: 1.5;
-	}
-
-	.debug-info p {
-		margin: 4px 0;
-		word-break: break-all;
-	}
-
-	.debug-info .error {
-		color: #ff6b6b;
-		font-weight: bold;
+		color: rgba(255, 255, 255, 0.7);
+		margin: 0;
+		max-width: 600px;
 	}
 </style>
