@@ -9,13 +9,14 @@
 	let videoError = $state<string | null>(null);
 	let videoReady = $state(false);
 	let networkState = $state('initial');
+	let isMuted = $state(true);
+	let volume = $state(1);
 
 	function onVideoError(e: Event) {
 		const video = e.target as HTMLVideoElement;
 		const code = video.error?.code;
 		const msg = video.error?.message;
 		videoError = `Error ${code}: ${msg}`;
-		networkState = `error: net=${video.networkState} ready=${video.readyState}`;
 	}
 
 	function onVideoCanPlay() {
@@ -28,6 +29,37 @@
 		networkState = 'loadstart';
 	}
 
+	function toggleMute(e: Event) {
+		const video = e.currentTarget as HTMLVideoElement;
+		video.muted = !video.muted;
+		isMuted = video.muted;
+	}
+
+	function handleVolume(e: Event) {
+		const video = e.currentTarget as HTMLVideoElement;
+		volume = video.volume;
+		isMuted = video.muted;
+	}
+
+	function handleKeydown(e: KeyboardEvent) {
+		if (e.key === 'm' || e.key === 'M') {
+			const video = document.querySelector('video');
+			if (video) {
+				video.muted = !video.muted;
+				isMuted = video.muted;
+			}
+		}
+		// Channel up/down with arrow keys
+		if (e.key === 'ArrowUp' || e.key === 'ArrowRight') {
+			const next = ($activeChannel + 1) % $channels.length;
+			$activeChannel = next;
+		}
+		if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') {
+			const prev = ($activeChannel - 1 + $channels.length) % $channels.length;
+			$activeChannel = prev;
+		}
+	}
+
 	$effect(() => {
 		$activeChannel;
 		videoError = null;
@@ -35,6 +67,8 @@
 		networkState = 'changed';
 	});
 </script>
+
+<svelte:window onkeydown={handleKeydown} />
 
 <div class="player-area">
 	{#if videoUrl && currentChannel?.identifier}
@@ -48,8 +82,17 @@
 			onerror={onVideoError}
 			oncanplay={onVideoCanPlay}
 			onloadstart={onVideoLoadStart}
+			onvolumechange={handleVolume}
 		></video>
 	{/if}
+
+	<!-- Sound toggle button -->
+	<button class="sound-btn" onclick={() => {
+		const video = document.querySelector('video');
+		if (video) { video.muted = !video.muted; isMuted = video.muted; }
+	}} title={isMuted ? 'Unmute (m)' : 'Mute (m)'}>
+		{isMuted ? '🔇' : '🔊'}
+	</button>
 
 	{#if currentChannel}
 		<div class="channel-overlay">
@@ -73,6 +116,25 @@
 		width: 100%;
 		height: 100%;
 		object-fit: contain;
+	}
+
+	.sound-btn {
+		position: fixed;
+		bottom: 12px;
+		left: 340px;
+		z-index: 100;
+		background: rgba(0, 0, 0, 0.6);
+		border: 1px solid rgba(255, 255, 255, 0.2);
+		color: #fff;
+		padding: 8px 12px;
+		border-radius: 6px;
+		cursor: pointer;
+		font-size: 18px;
+		line-height: 1;
+	}
+
+	.sound-btn:hover {
+		background: rgba(255, 255, 255, 0.15);
 	}
 
 	.channel-overlay {
