@@ -211,7 +211,7 @@
 	/* ── Sound Button ── */
 	.sound-btn {
 		position: fixed;
-		bottom: 20px;
+		top: 20px;
 		left: 360px;
 		z-index: 100;
 		background: rgba(0, 0, 0, 0.5);

@@ -4,12 +4,14 @@
 	import ChannelGuide from '$lib/components/ChannelGuide.svelte';
 	import ModeToggle from '$lib/components/ModeToggle.svelte';
 
-	// Prelinger films — all verified non-private with direct MP4 access
+	// Prelinger films — verified non-private with direct MP4 access
 	const PRELINGER_CHANNELS: { id: string; title: string; description: string }[] = [
-		{ id: 'venice_of_the_north', title: 'Venice of the North', description: 'Classic travelogue film about Sweden' },
-		{ id: 'aboutbananas00snag', title: 'About Bananas', description: 'Educational film about bananas (1935)' },
+		{ id: 'venice_of_the_north', title: 'Venice of the North', description: 'Classic travelogue about Sweden' },
 		{ id: 'vacuum_control', title: 'Vacuum Control', description: 'Industrial training film' },
-		{ id: '17DaysTh1945', title: '17 Days: The Story of Newspaper History', description: '1945 newspaper documentary' },
+		{ id: 'Doctorin1946', title: 'Doctor in Industry', description: 'Industrial medicine documentary (1946)' },
+		{ id: 'HealthYo1953', title: 'Health: Your Posture', description: 'Vintage posture & health film (1953)' },
+		{ id: 'FromtheG1954', title: 'From the Ground Up', description: 'Construction & building documentary (1954)' },
+		{ id: 'HaveITol1958', title: 'Have I Told You Lately', description: 'Classic 1950s social guidance film' },
 	];
 
 	let started = $state(false);
