@@ -74,12 +74,12 @@ export function computeTimeNormalizedSearches(
 }
 
 /**
- * Build the IA search query URL for finding a broadcast at a given UTC time.
+ * Build a proxy search URL for finding a broadcast at a given UTC time.
+ * Uses our SvelteKit server route to avoid CORS issues.
  */
 export function buildSearchUrl(channelId: string, date: string, time: string): string {
-	// Try exact match first: CHANNEL_YYYYMMDD_HHMMSS*
-	const baseQuery = `collection:tvarchive AND identifier:${channelId}_${date}_${time}*`;
-	return `https://archive.org/advancedsearch.php?q=${encodeURIComponent(baseQuery)}&fl[]=identifier,title,description&rows=5&sort[]=&output=json`;
+	const query = `collection:tvarchive AND identifier:${channelId}_${date}_${time}*`;
+	return `/api/search?q=${encodeURIComponent(query)}&rows=5`;
 }
 
 /**
@@ -88,7 +88,7 @@ export function buildSearchUrl(channelId: string, date: string, time: string): s
 export function buildHourSearchUrl(channelId: string, date: string, time: string): string {
 	const hour = time.slice(0, 2);
 	const query = `collection:tvarchive AND identifier:${channelId}_${date}_${hour}*`;
-	return `https://archive.org/advancedsearch.php?q=${encodeURIComponent(query)}&fl[]=identifier,title,description&rows=5&sort[]=&output=json`;
+	return `/api/search?q=${encodeURIComponent(query)}&rows=5`;
 }
 
 /**
@@ -102,7 +102,7 @@ export function buildYesterdaySearchUrl(channelId: string, time: string): string
 	const d = String(yesterday.getUTCDate()).padStart(2, '0');
 	const hour = time.slice(0, 2);
 	const query = `collection:tvarchive AND identifier:${channelId}_${y}${m}${d}_${hour}*`;
-	return `https://archive.org/advancedsearch.php?q=${encodeURIComponent(query)}&fl[]=identifier,title,description&rows=5&sort[]=&output=json`;
+	return `/api/search?q=${encodeURIComponent(query)}&rows=5`;
 }
 
 /**
