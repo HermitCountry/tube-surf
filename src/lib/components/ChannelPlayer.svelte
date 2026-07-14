@@ -3,7 +3,7 @@
 
 	let currentChannel = $derived($channels[$activeChannel]);
 	let embedUrl = $derived(currentChannel?.identifier
-		? `https://archive.org/embed/${currentChannel.identifier}`
+		? `https://archive.org/embed/${currentChannel.identifier}?autoplay=1`
 		: null);
 
 	let videoError = $state<string | null>(null);
