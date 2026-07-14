@@ -3,11 +3,7 @@
 </script>
 
 <div class="guide">
-	<div class="guide-header">
-		<span class="header-cell">#</span>
-		<span class="header-cell">Channel</span>
-		<span class="header-cell header-description">Description</span>
-	</div>
+	<div class="guide-header">GUIDE</div>
 	<div class="guide-list">
 		{#each $channels as ch, i}
 			<button
@@ -15,9 +11,8 @@
 				class:active={i === $activeChannel}
 				onclick={() => ($activeChannel = i)}
 			>
-				<span class="cell-num">{i + 1}</span>
+				<span class="cell-num">{String(i + 1).padStart(2, '0')}</span>
 				<span class="cell-name">{ch.name}</span>
-				<span class="cell-desc">{ch.description ?? ''}</span>
 			</button>
 		{/each}
 	</div>
@@ -30,33 +25,22 @@
 		top: 0;
 		bottom: 0;
 		width: 320px;
-		background: rgba(0, 0, 0, 0.85);
-		border-right: 1px solid rgba(255, 255, 255, 0.1);
+		background: #111;
+		border-right: 2px solid #333;
 		z-index: 50;
 		display: flex;
 		flex-direction: column;
-		overflow: hidden;
+		font-family: 'Courier New', monospace;
 	}
 
 	.guide-header {
-		display: flex;
-		padding: 8px;
-		gap: 8px;
-		border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+		padding: 16px;
 		font-size: 11px;
+		letter-spacing: 4px;
+		color: #4f4;
 		text-transform: uppercase;
-		letter-spacing: 0.5px;
-		color: rgba(255, 255, 255, 0.5);
-	}
-
-	.header-cell {
-		flex-shrink: 0;
-	}
-
-	.header-description {
-		flex: 1;
-		overflow: hidden;
-		text-overflow: ellipsis;
+		border-bottom: 1px solid rgba(68, 255, 68, 0.15);
+		text-shadow: 0 0 6px rgba(68, 255, 68, 0.3);
 	}
 
 	.guide-list {
@@ -67,43 +51,46 @@
 	.guide-row {
 		display: flex;
 		width: 100%;
-		padding: 8px;
-		gap: 8px;
+		padding: 10px 16px;
+		gap: 12px;
+		align-items: center;
 		background: none;
 		border: none;
-		border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-		color: #fff;
+		border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+		color: #888;
 		cursor: pointer;
 		font-size: 13px;
+		font-family: -apple-system, system-ui, sans-serif;
 		text-align: left;
+		transition: all 0.1s;
 	}
 
 	.guide-row:hover {
-		background: rgba(255, 255, 255, 0.08);
+		background: rgba(255, 255, 255, 0.04);
+		color: #ccc;
 	}
 
 	.guide-row.active {
-		background: rgba(255, 255, 255, 0.15);
-		border-left: 3px solid #fff;
+		background: rgba(68, 255, 68, 0.06);
+		color: #4f4;
+		border-left: 3px solid #4f4;
+		padding-left: 13px;
 	}
 
 	.cell-num {
-		width: 24px;
-		flex-shrink: 0;
-		color: rgba(255, 255, 255, 0.4);
+		font-size: 12px;
+		color: #555;
+		min-width: 20px;
+		font-family: 'Courier New', monospace;
+	}
+
+	.guide-row.active .cell-num {
+		color: #4f4;
 	}
 
 	.cell-name {
-		width: 100px;
-		flex-shrink: 0;
-		font-weight: 500;
-	}
-
-	.cell-desc {
 		flex: 1;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-		color: rgba(255, 255, 255, 0.6);
+		font-weight: 500;
+		font-size: 13px;
 	}
 </style>
