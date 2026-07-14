@@ -8,9 +8,9 @@
 
 	let videoError = $state<string | null>(null);
 	let videoReady = $state(false);
-	let networkState = $state('initial');
 	let isMuted = $state(true);
 	let volume = $state(1);
+	let videoEl: HTMLVideoElement | undefined = $state(undefined);
 
 	function onVideoError(e: Event) {
 		const video = e.target as HTMLVideoElement;
@@ -22,34 +22,42 @@
 	function onVideoCanPlay() {
 		videoReady = true;
 		videoError = null;
-		networkState = 'canplay';
 	}
 
 	function onVideoLoadStart() {
-		networkState = 'loadstart';
+		videoReady = false;
 	}
 
-	function toggleMute(e: Event) {
-		const video = e.currentTarget as HTMLVideoElement;
+	// When video metadata loads, seek to a random position
+	function onVideoMetaData() {
+		const video = videoEl;
+		if (!video || !video.duration) return;
+
+		// Seek to a random position between 10% and 80% into the video
+		const minSeek = video.duration * 0.1;
+		const maxSeek = video.duration * 0.8;
+		const randomTime = minSeek + Math.random() * (maxSeek - minSeek);
+		video.currentTime = randomTime;
+	}
+
+	function toggleMute() {
+		const video = videoEl;
+		if (!video) return;
 		video.muted = !video.muted;
 		isMuted = video.muted;
 	}
 
-	function handleVolume(e: Event) {
-		const video = e.currentTarget as HTMLVideoElement;
+	function onVolumeChange() {
+		const video = videoEl;
+		if (!video) return;
 		volume = video.volume;
 		isMuted = video.muted;
 	}
 
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'm' || e.key === 'M') {
-			const video = document.querySelector('video');
-			if (video) {
-				video.muted = !video.muted;
-				isMuted = video.muted;
-			}
+			toggleMute();
 		}
-		// Channel up/down with arrow keys
 		if (e.key === 'ArrowUp' || e.key === 'ArrowRight') {
 			const next = ($activeChannel + 1) % $channels.length;
 			$activeChannel = next;
@@ -60,11 +68,11 @@
 		}
 	}
 
+	// Reset state on channel switch
 	$effect(() => {
 		$activeChannel;
 		videoError = null;
 		videoReady = false;
-		networkState = 'changed';
 	});
 </script>
 
@@ -73,6 +81,7 @@
 <div class="player-area">
 	{#if videoUrl && currentChannel?.identifier}
 		<video
+			bind:this={videoEl}
 			class="main-video"
 			src={videoUrl}
 			autoplay
@@ -82,15 +91,13 @@
 			onerror={onVideoError}
 			oncanplay={onVideoCanPlay}
 			onloadstart={onVideoLoadStart}
-			onvolumechange={handleVolume}
+			onloadedmetadata={onVideoMetaData}
+			onvolumechange={onVolumeChange}
 		></video>
 	{/if}
 
 	<!-- Sound toggle button -->
-	<button class="sound-btn" onclick={() => {
-		const video = document.querySelector('video');
-		if (video) { video.muted = !video.muted; isMuted = video.muted; }
-	}} title={isMuted ? 'Unmute (m)' : 'Mute (m)'}>
+	<button class="sound-btn" onclick={toggleMute} title={isMuted ? 'Unmute (m)' : 'Mute (m)'}>
 		{isMuted ? '🔇' : '🔊'}
 	</button>
 
