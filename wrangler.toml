@@ -1,0 +1,12 @@
+name = "tube-surf"
+compatibility_date = "2026-07-13"
+pages_build_output_dir = ".svelte-kit/cloudflare"
+
+# Route the video proxy through a Worker
+[[routes]]
+pattern = "/api/proxy/*"
+zone_id = ""
+
+# Environment variables for dev
+[vars]
+IA_PROXY_ENABLED = "false"
