@@ -6,18 +6,9 @@
 		? `https://archive.org/embed/${currentChannel.identifier}?autoplay=1`
 		: null);
 
-	let videoError = $state<string | null>(null);
-	let iframeLoaded = $state(false);
-
-	function onIframeLoad() {
-		iframeLoaded = true;
-		videoError = null;
-	}
-
 	$effect(() => {
+		// Log the current channel for debugging
 		$activeChannel;
-		iframeLoaded = false;
-		videoError = null;
 	});
 </script>
 
@@ -28,21 +19,19 @@
 			src={embedUrl}
 			allow="autoplay; fullscreen"
 			allowfullscreen
-			onload={onIframeLoad}
 		></iframe>
 	{:else if currentChannel && !currentChannel.identifier}
 		<div class="no-signal">
 			<p class="no-signal-text">📡 No Signal</p>
-			<p class="no-signal-sub">No broadcast found</p>
+			<p class="no-signal-sub">No broadcast found for this time</p>
 		</div>
 	{/if}
 
+	<!-- Channel info overlay on top of the embed -->
 	{#if currentChannel}
 		<div class="channel-overlay">
 			<h2 class="channel-name">{currentChannel.name}</h2>
-			{#if currentChannel.description}
-				<p class="channel-desc">{currentChannel.description}</p>
-			{/if}
+			<p class="channel-desc">{currentChannel.description}</p>
 		</div>
 	{/if}
 </div>
@@ -91,6 +80,7 @@
 		background: linear-gradient(transparent, rgba(0,0,0,0.7));
 		padding: 20px;
 		pointer-events: none;
+		z-index: 10;
 	}
 
 	.channel-name {
