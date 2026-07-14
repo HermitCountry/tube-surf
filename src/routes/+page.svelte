@@ -8,7 +8,7 @@
 	const PRELINGER_CHANNELS: { id: string; title: string; description: string }[] = [
 		{ id: 'venice_of_the_north', title: 'Venice of the North', description: 'Classic travelogue about Sweden' },
 		{ id: 'vacuum_control', title: 'Vacuum Control', description: 'Industrial training film' },
-		{ id: 'Doctorin1946', title: 'Doctor in Industry', description: 'Industrial medicine documentary (1946)' },
+		{ id: 'Sleepfor1950', title: 'Sleep for Health', description: 'Vintage sleep hygiene film (1950)' },
 		{ id: 'HealthYo1953', title: 'Health: Your Posture', description: 'Vintage posture & health film (1953)' },
 		{ id: 'FromtheG1954', title: 'From the Ground Up', description: 'Construction & building documentary (1954)' },
 		{ id: 'HaveITol1958', title: 'Have I Told You Lately', description: 'Classic 1950s social guidance film' },
