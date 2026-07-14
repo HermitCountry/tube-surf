@@ -28,42 +28,49 @@ export type TimeNormalizedSearch = {
 export function computeTimeNormalizedSearches(
 	localDate: Date
 ): TimeNormalizedSearch[] {
-	const localHours = localDate.getHours();
-	const localMinutes = localDate.getMinutes();
+	const userYear = localDate.getFullYear();
+	const userMonth = localDate.getMonth();     // 0-indexed
+	const userDay = localDate.getDate();
+	const userHour = localDate.getHours();
+	const userMinute = localDate.getMinutes();
 
 	return NEWS_CHANNELS.map((ch) => {
-		// Convert user's local time to the UTC time that corresponds to
-		// the same time-of-day in the channel's timezone.
+		// Convert user's time-of-day to the equivalent UTC time for this channel.
 		//
-		// Example: User at 19:00 Pacific (UTC-7), FRANCE24 at UTC+2:
-		//   search_utc_hour = 19 - 2 = 17 → 17:00 UTC
+		// Example: User at 19:00 Pacific (UTC-7) on July 13, FRANCE24 at UTC+2:
+		//   targetHour = 19 - 2 = 17 → 17:00 UTC on July 13
+		//   search FRANCE24_20260713_170000*
 		//
-		// The date may roll forward or backward.
-		let utcHours = localHours - ch.timezoneOffset;
+		// Date.UTC handles hour/minute overflow/underflow correctly
+		// (e.g., hour=26 becomes next day at 02:00, hour=-2 becomes previous day)
+		let targetHour = userHour - ch.timezoneOffset;
+		let targetMinute = userMinute;
 
 		// Handle fractional timezone offsets (e.g., Iran at UTC+3:30)
-		let utcMinutes = localMinutes;
 		const fracOffset = ch.timezoneOffset % 1;
 		if (fracOffset !== 0) {
-			utcMinutes = localMinutes - Math.round(fracOffset * 60);
-			if (utcMinutes < 0) {
-				utcMinutes += 60;
-				utcHours -= 1;
-			} else if (utcMinutes >= 60) {
-				utcMinutes -= 60;
-				utcHours += 1;
+			targetMinute = userMinute - Math.round(fracOffset * 60);
+			if (targetMinute < 0) {
+				targetMinute += 60;
+				targetHour -= 1;
+			} else if (targetMinute >= 60) {
+				targetMinute -= 60;
+				targetHour += 1;
 			}
 		}
 
-		// Handle date rollover
-		const utcDate = new Date(localDate);
-		utcDate.setHours(utcHours, utcMinutes, 0, 0);
+		// Use the user's LOCAL date components. Date.UTC handles rollover
+		// (e.g., hour=26 → next day, hour=-2 → previous day).
+		const targetDate = new Date(Date.UTC(
+			userYear, userMonth, userDay,
+			targetHour, targetMinute, 0
+		));
 
-		const y = utcDate.getUTCFullYear();
-		const m = String(utcDate.getUTCMonth() + 1).padStart(2, '0');
-		const d = String(utcDate.getUTCDate()).padStart(2, '0');
-		const hh = String(utcDate.getUTCHours()).padStart(2, '0');
-		const mm = String(utcDate.getUTCMinutes()).padStart(2, '0');
+		const y = targetDate.getUTCFullYear();
+		const m = String(targetDate.getUTCMonth() + 1).padStart(2, '0');
+		const d = String(targetDate.getUTCDate()).padStart(2, '0');
+		const hh = String(targetDate.getUTCHours()).padStart(2, '0');
+		const mm = String(targetDate.getUTCMinutes()).padStart(2, '0');
 
 		return {
 			channel: ch,
