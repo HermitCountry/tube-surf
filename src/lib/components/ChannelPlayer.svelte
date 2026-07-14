@@ -50,7 +50,11 @@
 		if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') $activeChannel = ($activeChannel - 1 + $channels.length) % $channels.length;
 	}
 
-	$effect(() => { $activeChannel; videoError = null; videoReady = false; });
+	$effect(() => {
+		$activeChannel; videoError = null; videoReady = false;
+		// Force play after channel switch for consistent autoplay
+		setTimeout(() => { if (videoEl) videoEl.play().catch(() => {}); }, 100);
+	});
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
