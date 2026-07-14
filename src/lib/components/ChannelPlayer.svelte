@@ -78,7 +78,6 @@
 			autoplay
 			muted
 			playsinline
-			controls
 			onerror={onVideoError}
 			oncanplay={onVideoCanPlay}
 			onloadstart={onVideoLoadStart}
