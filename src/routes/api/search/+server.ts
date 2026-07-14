@@ -36,6 +36,8 @@ export const GET: RequestHandler = async ({ url }) => {
 	}
 
 	const data = await response.json();
+	const numFound = data?.response?.numFound ?? 0;
+	console.log(`[proxy] ${query.slice(0, 80)} → ${numFound} items`);
 
 	return new Response(JSON.stringify(data), {
 		status: 200,

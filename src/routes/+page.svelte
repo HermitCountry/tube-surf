@@ -22,6 +22,7 @@
 
 		for (const s of searches) {
 			statusMsg = `Tuning ${s.channel.flag} ${s.channel.name}...`;
+			console.log(`[tube-surf] Searching ${s.channel.id}: ${s.searchDate}_${s.searchTime}`);
 
 			// Search via our proxy (avoids CORS)
 			const query = `collection:tvarchive AND identifier:${s.channel.id}_${s.searchDate}_${s.searchTime}*`;
