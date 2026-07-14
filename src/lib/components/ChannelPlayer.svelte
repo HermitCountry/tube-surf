@@ -78,6 +78,7 @@
 			autoplay
 			muted
 			playsinline
+			controls
 			onerror={onVideoError}
 			oncanplay={onVideoCanPlay}
 			onloadstart={onVideoLoadStart}
@@ -115,6 +116,14 @@
 		width: 100%;
 		height: 100%;
 		object-fit: contain;
+	}
+
+	/* Hide native controls but keep them in DOM for autoplay support */
+	.main-video::-webkit-media-controls {
+		display: none !important;
+	}
+	.main-video::-webkit-media-controls-enclosure {
+		display: none !important;
 	}
 
 	.sound-btn {
