@@ -1,14 +1,15 @@
 <script lang="ts">
-	import { channels, activeChannel, mode } from '$lib/stores/settings';
-
-	// HARDCODED TEST — known working video from FRANCE24
-	// FRANCE24_20260713_170000 = 7pm Paris news on July 13
+	// HARDCODED TEST — FRANCE24 July 13 7pm Paris news
 	const TEST_IDENTIFIER = 'FRANCE24_20260713_170000';
-	const TEST_VIDEO_URL = `https://archive.org/download/${TEST_IDENTIFIER}/${TEST_IDENTIFIER}.mp4`;
+	const TEST_DIRECT_URL = `https://archive.org/download/${TEST_IDENTIFIER}/${TEST_IDENTIFIER}.mp4?exact=1`;
+	const TEST_EMBED_URL = `https://archive.org/embed/${TEST_IDENTIFIER}`;
 
+	let useDirect = $state(true);
+	let useEmbed = $state(false);
 	let videoError = $state<string | null>(null);
 	let videoReady = $state(false);
 	let networkState = $state('initial');
+	let currentUrl = $state(TEST_DIRECT_URL);
 
 	function onVideoError(e: Event) {
 		const video = e.target as HTMLVideoElement;
@@ -16,6 +17,15 @@
 		const msg = video.error?.message;
 		videoError = `Error ${code}: ${msg}`;
 		networkState = `error: net=${video.networkState} ready=${video.readyState}`;
+
+		// Fallback to embed if direct fails
+		if (useDirect) {
+			console.log('Direct video failed, trying embed...');
+			useDirect = false;
+			useEmbed = true;
+			currentUrl = TEST_EMBED_URL;
+			videoError = null;
+		}
 	}
 
 	function onVideoCanPlay() {
@@ -34,23 +44,32 @@
 </script>
 
 <div class="player-area">
-	<video
-		class="main-video"
-		src={TEST_VIDEO_URL}
-		autoplay
-		muted
-		playsinline
-		controls
-		onerror={onVideoError}
-		oncanplay={onVideoCanPlay}
-		onloadstart={onVideoLoadStart}
-		onwaiting={onVideoWaiting}
-	></video>
+	{#if useDirect}
+		<video
+			class="main-video"
+			src={currentUrl}
+			autoplay
+			muted
+			playsinline
+			controls
+			onerror={onVideoError}
+			oncanplay={onVideoCanPlay}
+			onloadstart={onVideoLoadStart}
+			onwaiting={onVideoWaiting}
+		></video>
+	{:else if useEmbed}
+		<iframe
+			class="embed-player"
+			src={currentUrl}
+			allow="autoplay; fullscreen"
+			allowfullscreen
+		></iframe>
+	{/if}
 
-	<!-- Debug info -->
-	<div class="debug-info">
-		<p><strong>Test video — 7pm Paris news (FRANCE24)</strong></p>
-		<p>URL: {TEST_VIDEO_URL}</p>
+	<div class="debug-info" style:bottom={useEmbed ? '0' : 'auto'} style:top={useEmbed ? 'auto' : '50px'}>
+		<p><strong>Test — 7pm Paris news (FRANCE24)</strong></p>
+		<p>Mode: {useDirect ? 'direct MP4' : 'IA embed'}</p>
+		<p>URL: {currentUrl}</p>
 		<p>State: {networkState}</p>
 		{#if videoReady}
 			<p style="color: #4caf50;">✅ Video is playing!</p>
@@ -77,9 +96,14 @@
 		object-fit: contain;
 	}
 
+	.embed-player {
+		width: 100%;
+		height: 100%;
+		border: none;
+	}
+
 	.debug-info {
 		position: absolute;
-		top: 50px;
 		left: 40px;
 		right: 40px;
 		background: rgba(0,0,0,0.85);
