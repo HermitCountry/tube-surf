@@ -3,41 +3,32 @@
 	import ChannelPlayer from '$lib/components/ChannelPlayer.svelte';
 	import ChannelGuide from '$lib/components/ChannelGuide.svelte';
 	import ModeToggle from '$lib/components/ModeToggle.svelte';
-	import { NEWS_CHANNELS } from '$lib/ia/channels';
 
-	// Hardcoded known-working identifiers — all verified with MP4 files
-	const KNOWN_WORKING: { id: string; identifier: string; title: string }[] = [
-		{ id: 'FRANCE24', identifier: 'FRANCE24_20260713_170000', title: 'France 24 — 7:00pm-7:31pm CEST' },
-		{ id: 'RT', identifier: 'RT_20260713_160000_News', title: 'RT — 12:00pm-12:31pm EDT' },
-		{ id: 'KCTV', identifier: 'KCTV_20260713_100000', title: 'KCTV — 7:00pm-7:31pm KST' },
-		{ id: 'GBN', identifier: 'GBN_20260713_180000_GBN_Tonight', title: 'GB News — GBN Tonight, 7:00pm-8:01pm BST' },
-		{ id: 'PALESTINETV', identifier: 'PALESTINETV_20260713_010000', title: 'Palestine TV — broadcast' },
-		{ id: 'PRESSTV', identifier: 'PRESSTV_20260713_230000', title: 'Press TV — broadcast' },
+	// Prelinger films — all verified non-private with direct MP4 access
+	const PRELINGER_CHANNELS: { id: string; title: string; description: string }[] = [
+		{ id: 'venice_of_the_north', title: 'Venice of the North', description: 'Classic travelogue film about Sweden' },
+		{ id: 'aboutbananas00snag', title: 'About Bananas', description: 'Educational film about bananas (1935)' },
+		{ id: 'vacuum_control', title: 'Vacuum Control', description: 'Industrial training film' },
+		{ id: '17DaysTh1945', title: '17 Days: The Story of Newspaper History', description: '1945 newspaper documentary' },
 	];
 
 	let started = $state(false);
-	let loading = $state(false);
 
 	function tuneIn() {
 		started = true;
-		loading = true;
 
-		const results: Channel[] = KNOWN_WORKING.map((kw) => {
-			const ch = NEWS_CHANNELS.find((c) => c.id === kw.id);
-			return {
-				id: kw.id,
-				name: `${ch?.flag ?? '📺'} ${ch?.name ?? kw.id}`,
-				collection: 'tvarchive',
-				identifier: kw.identifier,
-				description: kw.title,
-				favorited: false,
-				hidden: false,
-			};
-		});
+		const results: Channel[] = PRELINGER_CHANNELS.map((pc, i) => ({
+			id: pc.id,
+			name: pc.title,
+			collection: 'prelinger',
+			identifier: pc.id,
+			description: pc.description,
+			favorited: false,
+			hidden: false,
+		}));
 
 		channels.set(results);
 		activeChannel.set(0);
-		loading = false;
 	}
 </script>
 
@@ -52,10 +43,6 @@
 					📡 Tune In
 				</button>
 			</div>
-		</div>
-	{:else if loading}
-		<div class="loading-screen">
-			<p style="color: rgba(255,255,255,0.5);">Loading channels...</p>
 		</div>
 	{:else}
 		<ModeToggle />
@@ -76,7 +63,7 @@
 		overflow: hidden;
 	}
 
-	.welcome-screen, .loading-screen {
+	.welcome-screen {
 		position: fixed;
 		inset: 0;
 		display: flex;
