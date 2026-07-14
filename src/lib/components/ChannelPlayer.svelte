@@ -3,7 +3,9 @@
 
 	let currentChannel = $derived($channels[$activeChannel]);
 	let videoUrl = $derived(currentChannel?.identifier
-		? `https://archive.org/download/${currentChannel.identifier}/${currentChannel.identifier}.mp4`
+		? (currentChannel.identifier.startsWith('http') 
+			? currentChannel.identifier  // Already a URL (HLS stream, etc.)
+			: `https://archive.org/download/${currentChannel.identifier}/${currentChannel.identifier}.mp4`)
 		: null);
 
 	let videoError = $state<string | null>(null);

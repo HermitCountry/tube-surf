@@ -5,7 +5,7 @@ export type Channel = {
 	id: string;
 	name: string;
 	collection: string;
-	identifier?: string;
+	identifier?: string;   // IA identifier or direct HLS/MP4 URL
 	description?: string;
 	favorited: boolean;
 	hidden: boolean;
