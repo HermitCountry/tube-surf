@@ -1,23 +1,21 @@
 <script lang="ts">
 	import { channels, activeChannel, mode } from '$lib/stores/settings';
-	import { getVideoUrl } from '$lib/ia/api';
 
-	let currentChannel = $derived($channels[$activeChannel]);
-	let videoUrl = $derived(currentChannel?.identifier
-		? getVideoUrl(currentChannel.identifier)
-		: null);
+	// HARDCODED TEST — known working video from FRANCE24
+	// FRANCE24_20260713_170000 = 7pm Paris news on July 13
+	const TEST_IDENTIFIER = 'FRANCE24_20260713_170000';
+	const TEST_VIDEO_URL = `https://archive.org/download/${TEST_IDENTIFIER}/${TEST_IDENTIFIER}.mp4`;
 
 	let videoError = $state<string | null>(null);
 	let videoReady = $state(false);
-	let networkState = $state<string>('initial');
+	let networkState = $state('initial');
 
 	function onVideoError(e: Event) {
 		const video = e.target as HTMLVideoElement;
 		const code = video.error?.code;
 		const msg = video.error?.message;
-		const medErr = video.error?.MEDIA_ERR_NETWORK ?? video.error?.MEDIA_ERR_DECODE;
-		videoError = `Error ${code}: ${msg} (network: ${video.networkState}, ready: ${video.readyState})`;
-		networkState = `network=${video.networkState} ready=${video.readyState}`;
+		videoError = `Error ${code}: ${msg}`;
+		networkState = `error: net=${video.networkState} ready=${video.readyState}`;
 	}
 
 	function onVideoCanPlay() {
@@ -33,51 +31,34 @@
 	function onVideoWaiting() {
 		networkState = 'waiting';
 	}
-
-	// Reset when channel changes
-	$effect(() => {
-		$activeChannel;
-		videoError = null;
-		videoReady = false;
-		networkState = 'changed';
-	});
 </script>
 
 <div class="player-area">
-	{#if videoUrl}
-		<video
-			class="main-video"
-			src={videoUrl}
-			autoplay
-			muted
-			playsinline
-			controls
-			onerror={onVideoError}
-			oncanplay={onVideoCanPlay}
-			onloadstart={onVideoLoadStart}
-			onwaiting={onVideoWaiting}
-		></video>
-	{/if}
+	<video
+		class="main-video"
+		src={TEST_VIDEO_URL}
+		autoplay
+		muted
+		playsinline
+		controls
+		onerror={onVideoError}
+		oncanplay={onVideoCanPlay}
+		onloadstart={onVideoLoadStart}
+		onwaiting={onVideoWaiting}
+	></video>
 
 	<!-- Debug info -->
 	<div class="debug-info">
-		<p>Channel: {currentChannel?.name ?? 'none'}</p>
-		<p>Identifier: {currentChannel?.identifier ?? 'none'}</p>
-		<p>Video URL: {videoUrl ?? 'none'}</p>
+		<p><strong>Test video — 7pm Paris news (FRANCE24)</strong></p>
+		<p>URL: {TEST_VIDEO_URL}</p>
 		<p>State: {networkState}</p>
+		{#if videoReady}
+			<p style="color: #4caf50;">✅ Video is playing!</p>
+		{/if}
 		{#if videoError}
 			<p class="error">⚠️ {videoError}</p>
 		{/if}
 	</div>
-
-	{#if currentChannel}
-		<div class="channel-overlay">
-			<h2 class="channel-name">{currentChannel.name}</h2>
-			{#if currentChannel.description}
-				<p class="channel-desc">{currentChannel.description}</p>
-			{/if}
-		</div>
-	{/if}
 </div>
 
 <style>
@@ -99,12 +80,12 @@
 	.debug-info {
 		position: absolute;
 		top: 50px;
-		left: 340px;
-		right: 20px;
+		left: 40px;
+		right: 40px;
 		background: rgba(0,0,0,0.85);
 		padding: 16px;
 		font-family: monospace;
-		font-size: 12px;
+		font-size: 13px;
 		z-index: 20;
 		border: 1px solid rgba(255,255,255,0.1);
 		border-radius: 8px;
@@ -112,35 +93,12 @@
 	}
 
 	.debug-info p {
-		margin: 2px 0;
+		margin: 4px 0;
 		word-break: break-all;
 	}
 
 	.debug-info .error {
 		color: #ff6b6b;
 		font-weight: bold;
-	}
-
-	.channel-overlay {
-		position: absolute;
-		bottom: 40px;
-		left: 340px;
-		right: 20px;
-		background: linear-gradient(transparent, rgba(0,0,0,0.7));
-		padding: 20px;
-		pointer-events: none;
-	}
-
-	.channel-name {
-		font-size: 18px;
-		font-weight: 600;
-		margin: 0 0 4px 0;
-	}
-
-	.channel-desc {
-		font-size: 13px;
-		color: rgba(255, 255, 255, 0.7);
-		margin: 0;
-		max-width: 600px;
 	}
 </style>
