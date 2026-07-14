@@ -5,6 +5,7 @@
 	import ModeToggle from '$lib/components/ModeToggle.svelte';
 	import { NEWS_CHANNELS } from '$lib/ia/channels';
 	import { computeTimeNormalizedSearches, buildSearchUrl, buildHourSearchUrl, buildYesterdaySearchUrl, fetchSearchResult } from '$lib/ia/time';
+	import { getVideoUrl } from '$lib/ia/api';
 	import { onMount } from 'svelte';
 
 	let loading = $state(true);
@@ -43,6 +44,7 @@
 			}
 
 			if (item) {
+				console.log(`Found ${s.channel.id}: ${item.identifier} → ${getVideoUrl(item.identifier)}`);
 				results.push({
 					id: s.channel.id,
 					name: `${s.channel.flag} ${s.channel.name}`,

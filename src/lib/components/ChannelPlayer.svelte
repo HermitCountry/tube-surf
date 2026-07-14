@@ -2,30 +2,32 @@
 	import { channels, activeChannel, mode } from '$lib/stores/settings';
 	import { getVideoUrl } from '$lib/ia/api';
 
-	/** Pre-load the next and previous channels in hidden video elements */
-	let loadedVideos = $state<Record<string, string>>({});
-
-	$effect(() => {
-		const idx = $activeChannel;
-		const ch = $channels;
-		const ids: string[] = [];
-
-		// Current + prev + next
-		if (ch[idx]) ids.push(ch[idx].identifier ?? ch[idx].id);
-		if (ch[idx - 1]) ids.push(ch[idx - 1].identifier ?? ch[idx - 1].id);
-		if (ch[idx + 1]) ids.push(ch[idx + 1].identifier ?? ch[idx + 1].id);
-
-		for (const id of ids) {
-			if (!loadedVideos[id]) {
-				loadedVideos[id] = getVideoUrl(id);
-			}
-		}
-	});
-
 	let currentChannel = $derived($channels[$activeChannel]);
 	let videoUrl = $derived(currentChannel?.identifier
 		? getVideoUrl(currentChannel.identifier)
 		: null);
+
+	let videoError = $state<string | null>(null);
+	let videoReady = $state(false);
+
+	function onVideoError(e: Event) {
+		const video = e.target as HTMLVideoElement;
+		const code = video.error?.code;
+		const msg = video.error?.message;
+		videoError = `Error ${code}: ${msg}`;
+	}
+
+	function onVideoCanPlay() {
+		videoReady = true;
+		videoError = null;
+	}
+
+	// Reset error state when switching channels
+	$effect(() => {
+		$activeChannel;
+		videoError = null;
+		videoReady = false;
+	});
 </script>
 
 <div class="player-area">
@@ -36,11 +38,25 @@
 			autoplay
 			muted
 			playsinline
-			controls={false}
+			controls
+			onerror={onVideoError}
+			oncanplay={onVideoCanPlay}
 		></video>
 	{/if}
 
-	<!-- Channel info overlay -->
+	{#if videoError}
+		<div class="video-error">
+			<p>⚠️ Video error: {videoError}</p>
+			<p class="video-url-debug">URL: {videoUrl}</p>
+		</div>
+	{/if}
+
+	{#if !videoReady && !videoError}
+		<div class="video-loading">
+			<p>Loading video...</p>
+		</div>
+	{/if}
+
 	{#if currentChannel}
 		<div class="channel-overlay">
 			<h2 class="channel-name">{currentChannel.name}</h2>
@@ -65,6 +81,36 @@
 		width: 100%;
 		height: 100%;
 		object-fit: contain;
+	}
+
+	.video-error {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		color: #ff6b6b;
+		text-align: center;
+		font-size: 14px;
+		z-index: 10;
+	}
+
+	.video-url-debug {
+		font-family: monospace;
+		font-size: 11px;
+		color: rgba(255, 255, 255, 0.5);
+		word-break: break-all;
+		max-width: 500px;
+		margin-top: 8px;
+	}
+
+	.video-loading {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		color: rgba(255, 255, 255, 0.5);
+		font-size: 14px;
+		z-index: 10;
 	}
 
 	.channel-overlay {
